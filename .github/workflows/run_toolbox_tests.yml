@@ -1,0 +1,53 @@
+name: Run all toolbox tests
+
+on: 
+  # Automatically run this action when a new push is made to repo
+  push:
+      
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out RVC3-MATLAB repository (for unit tests)
+        uses: actions/checkout@v3
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."          
+      - name: Set up MATLAB
+        # This uses the latest release of MATLAB. Can specify "release" if needed.
+        uses: matlab-actions/setup-matlab@v1
+      
+      - name: Print out ver details
+        uses: matlab-actions/run-command@v1
+        with:
+          command: ver
+          
+      - name: Run MATLAB Tests
+        # Only run tests in test/toolbox folder
+        uses: matlab-actions/run-tests@v1
+        with:
+          source-folder: toolbox
+          select-by-folder: test/toolbox
+          code-coverage-cobertura: coverage.xml
+      - name: show all files
+        run: ls -R
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        # with:
+        #   file: ./coverage.xml
+
+  # codecov:
+  #   # If all tests pass:
+  #   # Run coverage and upload to codecov
+  #   needs: unittest
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Upload coverage reports to Codecov
+  #     uses: codecov/codecov-action@v3
+  #     env:
+  #       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  #     with:
+  #       file: ./coverage.xml
